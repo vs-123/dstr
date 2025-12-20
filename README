@@ -1,8 +1,8 @@
 ~=~=~=~=~=
 || DSTR ||
 ~=~=~=~=~=
-   dstr is a dead-simple single-header dynamic string library.
-   dstr -- dynamic string
+   dstr is a dead-simple, C89-compatible, single-header dynamic string library.
+   dstr stands for =dynamic string=.
 
 ~=~=~=~=~=~=~
 || EXAMPLE ||
@@ -49,6 +49,23 @@
               in your main C file.
 
    o   Finally, use =#include "dstr.h"= wherever you'd like.
+
+~=~=~=~=~=~=~=
+|| FEATURES ||
+~=~=~=~=~=~=~=
+   o   Single-header library, zero installation required.
+       Just clone and #include, it's that easy.
+
+   o   Dead-simple API. 
+   
+   o   100% ANSI C compliant, zero GNU extensions were used.
+       Achieved with strict compiler flags (see =Makefile=).
+   
+   o   Minimal dependencies, relies only on core C89 headers
+       i.e. =<stddef.h>=, =<stdlib.h>= & =<string.h>=
+       
+   o   Even a C compiler from 1990 would happily compile this
+       without a single warning.
 
 ~=~=~=~=~=~=~
 || LICENSE ||
