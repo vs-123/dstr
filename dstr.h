@@ -21,6 +21,7 @@
 
 #include <stdarg.h>
 #include <stddef.h>
+#include <ctype.h>
 
 typedef struct
 {
@@ -41,6 +42,12 @@ dstr_t dstr_cat (const dstr_t *, const char *);
 void dstr_catfmtvd (dstr_t *d, const char *fmt, va_list ap);
 void dstr_catfmtd (dstr_t *, const char *fmt, ...); /* destructive */
 dstr_t dstr_catfmt (const dstr_t *, const char *fmt, ...);
+
+void dstr_toupperd (dstr_t *d);
+void dstr_tolowerd (dstr_t *d);
+
+dstr_t dstr_toupper (dstr_t *d);
+dstr_t dstr_tolower (dstr_t *d);
 
 void dstr_putc (dstr_t *, char);        /* destructive */
 void dstr_putl (dstr_t *, long);        /* destructive */
@@ -308,6 +315,46 @@ dstr_catfmt (const dstr_t *d, const char *fmt, ...)
    va_end (ap);
 
    return dcpy;
+}
+
+void
+dstr_toupperd (dstr_t *d)
+{
+   size_t len = d->len;
+   size_t i   = 0;
+
+   for (i = 0; i < len; i++)
+      {
+         d->str[i] = toupper (d->str[i]);
+      }
+}
+
+void
+dstr_tolowerd (dstr_t *d)
+{
+   size_t len = d->len;
+   size_t i   = 0;
+
+   for (i = 0; i < len; i++)
+      {
+         d->str[i] = tolower (d->str[i]);
+      }
+}
+
+dstr_t
+dstr_toupper (dstr_t *d)
+{
+   dstr_t dcpy = dstr_cpy (d);
+   dstr_toupperd (&dcpy);
+   return dcpy;
+}
+
+dstr_t
+dstr_tolower (dstr_t *d)
+{
+   dstr_t dcpy = dstr_cpy (d);
+   dstr_tolowerd (&dcpy);
+   return dcpy;   
 }
 
 void
