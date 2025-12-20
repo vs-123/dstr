@@ -1,0 +1,12 @@
+~=~=~=~=~=
+|| DSTR ||
+~=~=~=~=~=
+   dstr is a dead-simple dynamic string single-header library.
+   dstr -- dynamic string
+
+~=~=~=~=~=~=~
+|| LICENSE ||
+~=~=~=~=~=~=~
+   This project is licensed under GNU Affero General Public License version 3
+   (AGPLv3) or later. No warranty.
+   For full terms, see =LICENSE= file.
