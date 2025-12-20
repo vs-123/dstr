@@ -5,6 +5,31 @@
    dstr -- dynamic string
 
 ~=~=~=~=~=~=~
+|| EXAMPLE ||
+~=~=~=~=~=~=~
+   #include "dstr.h"
+   
+   dstr_t dstr = dstr_new ();
+   
+   dstr_catd (&dstr, "hello,");
+   dstr_putc (&dstr, ' ');
+   dstr_catd (&dstr, "world!");
+
+   /* dstr.str -> 'hello world!' */
+
+   dstr_clear (&dstr);
+
+   dstr_catd (&dstr, "hello again!");
+
+   /* dstr.str -> 'hello again!' */
+
+   dstr_t dcpy = dstr_cpy (&dstr);
+
+   /* dcpy.str -> 'hello again!' */
+   
+   dstr_free(&dcpy);
+
+~=~=~=~=~=~=~
 || LICENSE ||
 ~=~=~=~=~=~=~
    This project is licensed under GNU Affero General Public License version 3
