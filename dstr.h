@@ -35,6 +35,7 @@ void dstr_free (dstr_t *);
 
 void dstr_clear (dstr_t *); /* destructive */
 dstr_t dstr_cpy (const dstr_t *d);
+char dstr_at (const dstr_t *, size_t);
 
 void dstr_catd (dstr_t *, const char *); /* destructive */
 dstr_t dstr_cat (const dstr_t *, const char *);
@@ -121,6 +122,12 @@ dstr_cpy (const dstr_t *d)
    dcpy.str[dcpy.len] = '\0';
 
    return dcpy;
+}
+
+char
+dstr_at (const dstr_t *d, size_t i)
+{
+   return *(d->str + i * sizeof(char));
 }
 
 void

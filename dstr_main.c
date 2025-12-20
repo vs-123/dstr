@@ -29,6 +29,8 @@ main (void)
 
    printf ("copied: str -> %s, len -> %zu\n", dcpy.str, dcpy.len);
 
+   printf ("char at index 2: %c\n", dstr_at(&dcpy, 2));
+
    dstr_toupperd (&dcpy);
 
    printf ("upper: str -> %s\n", dcpy.str);
