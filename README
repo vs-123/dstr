@@ -47,24 +47,37 @@
    #define DSTR_IMPL
    #include "dstr.h"
    
-   dstr_t dstr = dstr_new ();
+   dstr_t dstr, dcpy;
+   double pi = 3.1415926535;
+   long debt = -2147483647;
+   char *name = "vs-123";
+   
+   dstr = dstr_new ();
    
    dstr_catd (&dstr, "hello,");
    dstr_putc (&dstr, ' ');
    dstr_catd (&dstr, "world!");
 
-   /* dstr.str -> 'hello world!' */
+   /* before clear: str -> hello, world!, len -> 13 */
 
    dstr_clear (&dstr);
-
    dstr_catd (&dstr, "hello again!");
-
-   /* dstr.str -> 'hello again!' */
-
-   dstr_t dcpy = dstr_cpy (&dstr);
-
-   /* dcpy.str -> 'hello again!' */
    
+   /* after clear: str -> hello again!, len -> 12 */
+
+   dcpy = dstr_cpy (&dstr);
+   dstr_free (&dstr);
+   
+   /* copied: str -> hello again!, len -> 12 */
+
+   dstr_clear (&dcpy);
+
+   dstr_catfmtd (&dcpy,
+      "User: %-15s | Balance: %+.10ld | Constant: %010.*f | %% complete", 
+      name, debt, 4, pi);
+
+    /* User: vs-123          | Balance: -2147483647 | Constant: 00003.1416 | % complete */
+       
    dstr_free(&dcpy);
 
 ~=~=~=~=~=~=~
