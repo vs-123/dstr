@@ -7,6 +7,8 @@ int
 main (void)
 {
    dstr_t dstr, dcpy;
+   int x;
+   x = 5;
 
    dstr = dstr_new ();
    
@@ -24,7 +26,13 @@ main (void)
    dcpy = dstr_cpy (&dstr);
    dstr_free (&dstr);
 
-   printf("copied: str -> %s, len -> %zu\n", dcpy.str, dcpy.len);
+   printf ("copied: str -> %s, len -> %zu\n", dcpy.str, dcpy.len);
+
+   dstr_clear (&dcpy);
+
+   dstr_catfmtd (&dcpy, "the number is %d", x);
+
+   printf ("catfmtd: str -> %s, len -> %zu\n", dcpy.str, dcpy.len);
    
    dstr_free(&dcpy);
 }

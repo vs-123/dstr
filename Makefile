@@ -1,10 +1,11 @@
-WOPT=-Wall -Wextra -Wpedantic -pedantic-errors -pedantic -Werror
+WOPT=-Wall -Wextra -Wpedantic -pedantic -pedantic-errors -Werror
 OPT=-std=c89 $(WOPT)
 
 build: $(SRC)
 	@ mkdir -p build/
 	@ echo "[INFO] building..."	
 	@ $(CC) -o ./build/dstr_app $(OPT) dstr_main.c
+	@ echo "[SUCCESS] built successfully!"
 
 b: build
 

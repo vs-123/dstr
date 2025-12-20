@@ -4,6 +4,43 @@
    dstr is a dead-simple, C89-compatible, single-header dynamic string library.
    dstr stands for =dynamic string=.
 
+~=~=~=~=~=~=~=
+|| FEATURES ||
+~=~=~=~=~=~=~=
+   o   Single-header library, zero installation required.
+       Just clone and #include, it's that easy.
+
+   o   Dead-simple API. 
+   
+   o   100% ANSI C compliant, zero GNU extensions were used.
+       Achieved with strict compiler flags (see =Makefile=).
+   
+   o   Minimal dependencies, relies only on core C89 headers
+       i.e. =<stddef.h>=, =<stdlib.h>= & =<string.h>=
+       
+   o   Even a C compiler from 1990 would happily compile this
+       without a single warning.
+
+~=~=~=~=~=~=~=~=
+|| HOW TO USE ||
+~=~=~=~=~=~=~=~=
+   o   Clone this repository into your project.
+
+          git clone https://github.com/vs-123/dstr.git
+	  
+   o   Add this project into your build system
+       to access =dstr.h= within your code.
+   
+   o   In your =main.c= (or any main file), add the following
+       at the top BEFORE you include =dstr.h=: (IMPORTANT)
+       
+       #define DSTR_IMPL
+
+       [NOTE] the above =#define= directive should be used only ONCE
+              in your main C file.
+
+   o   Finally, use =#include "dstr.h"= wherever you'd like.
+
 ~=~=~=~=~=~=~
 || EXAMPLE ||
 ~=~=~=~=~=~=~
@@ -29,43 +66,6 @@
    /* dcpy.str -> 'hello again!' */
    
    dstr_free(&dcpy);
-
-~=~=~=~=~=~=~=~=
-|| HOW TO USE ||
-~=~=~=~=~=~=~=~=
-   o   Clone this repository into your project.
-
-          git clone https://github.com/vs-123/dstr.git
-	  
-   o   Add this project into your build system
-       to access =dstr.h= within your code.
-   
-   o   In your =main.c= (or any main file), add the following
-       at the top BEFORE you include =dstr.h=: (IMPORTANT)
-       
-       #define DSTR_IMPL
-
-       [NOTE] the above =#define= directive should be used only ONCE
-              in your main C file.
-
-   o   Finally, use =#include "dstr.h"= wherever you'd like.
-
-~=~=~=~=~=~=~=
-|| FEATURES ||
-~=~=~=~=~=~=~=
-   o   Single-header library, zero installation required.
-       Just clone and #include, it's that easy.
-
-   o   Dead-simple API. 
-   
-   o   100% ANSI C compliant, zero GNU extensions were used.
-       Achieved with strict compiler flags (see =Makefile=).
-   
-   o   Minimal dependencies, relies only on core C89 headers
-       i.e. =<stddef.h>=, =<stdlib.h>= & =<string.h>=
-       
-   o   Even a C compiler from 1990 would happily compile this
-       without a single warning.
 
 ~=~=~=~=~=~=~
 || LICENSE ||
