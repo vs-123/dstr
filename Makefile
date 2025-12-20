@@ -1,11 +1,10 @@
-SRC=$(wildcard src/*.c)
 WOPT=-Wall -Wextra -Wpedantic
 OPT=-std=c99 $(WOPT) -Iinclude/
 
 build: $(SRC)
 	@ mkdir -p build/
 	@ echo "[INFO] building..."	
-	@ $(CC) -o ./build/dstr_app $(OPT) $(SRC)
+	@ $(CC) -o ./build/dstr_app $(OPT) src/main.c
 
 b: build
 

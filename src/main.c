@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+#define DSTR_IMPL
 #include "dstr.h"
 
 int

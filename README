@@ -7,6 +7,7 @@
 ~=~=~=~=~=~=~
 || EXAMPLE ||
 ~=~=~=~=~=~=~
+   #define DSTR_IMPL
    #include "dstr.h"
    
    dstr_t dstr = dstr_new ();
@@ -29,9 +30,24 @@
    
    dstr_free(&dcpy);
 
+~=~=~=~=~=~=~=~=
+|| HOW TO USE ||
+~=~=~=~=~=~=~=~=
+   o   Clone this repository into your project.
+   o   Include this project's =include/= in your build system.
+   o   In your =main.c= (or any main file), add the following
+       at the top BEFORE you include =dstr.h=: (IMPORTANT)
+       
+       #define DSTR_IMPL
+
+       [NOTE] the above =#define= directive should be used only ONCE
+              in your main C file.
+
+   o   Finally, use =#include "dstr.h"= wherever you'd like.
+
 ~=~=~=~=~=~=~
 || LICENSE ||
 ~=~=~=~=~=~=~
-   This project is licensed under GNU Affero General Public License version 3
+   This project is licensed under GNU Affero General Public License Version 3
    (AGPLv3) or later. No warranty.
    For full terms, see =LICENSE= file.
