@@ -1,7 +1,7 @@
 ~=~=~=~=~=
 || DSTR ||
 ~=~=~=~=~=
-   dstr is a dead-simple dynamic string single-header library.
+   dstr is a dead-simple single-header dynamic string library.
    dstr -- dynamic string
 
 ~=~=~=~=~=~=~
@@ -34,7 +34,12 @@
 || HOW TO USE ||
 ~=~=~=~=~=~=~=~=
    o   Clone this repository into your project.
-   o   Include this project's =include/= in your build system.
+
+          git clone https://github.com/vs-123/dstr.git
+	  
+   o   Add this project into your build system
+       to access =dstr.h= within your code.
+   
    o   In your =main.c= (or any main file), add the following
        at the top BEFORE you include =dstr.h=: (IMPORTANT)
        
@@ -49,5 +54,5 @@
 || LICENSE ||
 ~=~=~=~=~=~=~
    This project is licensed under GNU Affero General Public License Version 3
-   (AGPLv3) or later. No warranty.
+   (AGPLv3) or later. NO WARRANTY IS PROVIDED.
    For full terms, see =LICENSE= file.

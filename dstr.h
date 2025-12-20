@@ -14,6 +14,7 @@
       In all other files, simply:
          #include "dstr.h"
 */
+
 #ifndef __DSTR_H
 #define __DSTR_H
 
@@ -103,7 +104,6 @@ dstr_putc (dstr_t *d, char c)
 }
 
 #endif // DSTR_IMPL
-
 
 /*
 ~=~=~=~=~=~=~=~=~=~=~=~=~=~

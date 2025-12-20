@@ -1,10 +1,10 @@
 WOPT=-Wall -Wextra -Wpedantic
-OPT=-std=c99 $(WOPT) -Iinclude/
+OPT=-std=c99 $(WOPT)
 
 build: $(SRC)
 	@ mkdir -p build/
 	@ echo "[INFO] building..."	
-	@ $(CC) -o ./build/dstr_app $(OPT) src/main.c
+	@ $(CC) -o ./build/dstr_app $(OPT) dstr_main.c
 
 b: build
 
