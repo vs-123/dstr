@@ -2,3 +2,4 @@ BasedOnStyle: GNU
 IndentWidth: 3
 AlignConsecutiveAssignments: Consecutive
 InsertBraces: true
+AlignTrailingComments: true

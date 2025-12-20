@@ -19,9 +19,9 @@
 #ifndef __DSTR_H
 #define __DSTR_H
 
+#include <ctype.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <ctype.h>
 
 typedef struct
 {
@@ -39,15 +39,17 @@ dstr_t dstr_cpy (const dstr_t *d);
 void dstr_catd (dstr_t *, const char *); /* destructive */
 dstr_t dstr_cat (const dstr_t *, const char *);
 
-void dstr_catfmtvd (dstr_t *d, const char *fmt, va_list ap);
-void dstr_catfmtd (dstr_t *, const char *fmt, ...); /* destructive */
+void dstr_catfmtvd (dstr_t *d, const char *fmt, va_list ap); /* destructive */
+void dstr_catfmtd (dstr_t *, const char *fmt, ...);          /* destructive */
 dstr_t dstr_catfmt (const dstr_t *, const char *fmt, ...);
 
-void dstr_toupperd (dstr_t *d);
-void dstr_tolowerd (dstr_t *d);
+void dstr_toupperd (dstr_t *d); /* destructive */
+void dstr_tolowerd (dstr_t *d); /* destructive */
 
 dstr_t dstr_toupper (dstr_t *d);
 dstr_t dstr_tolower (dstr_t *d);
+
+int dstr_cmp (const dstr_t *d1, const dstr_t *d2);
 
 void dstr_putc (dstr_t *, char);        /* destructive */
 void dstr_putl (dstr_t *, long);        /* destructive */
@@ -354,7 +356,28 @@ dstr_tolower (dstr_t *d)
 {
    dstr_t dcpy = dstr_cpy (d);
    dstr_tolowerd (&dcpy);
-   return dcpy;   
+   return dcpy;
+}
+
+int
+dstr_cmp (const dstr_t *d1, const dstr_t *d2)
+{
+   int cmp;
+   size_t d1_len, d2_len, min_len;
+
+   d1_len = d1->len;
+   d2_len = d2->len;
+
+   min_len = (d1_len < d2_len) ? d1_len : d2_len;
+
+   cmp = memcmp (&d1->str, &d2->str, min_len);
+
+   if (cmp == 0)
+      {
+         return d1_len > d2_len ? 1 : d1_len == d2_len ? 0 : -1;
+      }
+
+   return cmp;
 }
 
 void
