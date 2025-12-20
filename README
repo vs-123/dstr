@@ -58,17 +58,21 @@
    dstr_putc (&dstr, ' ');
    dstr_catd (&dstr, "world!");
 
-   /* before clear: str -> hello, world!, len -> 13 */
+   /* before clear: dstr.str -> hello, world!, dstr.len -> 13 */
 
    dstr_clear (&dstr);
    dstr_catd (&dstr, "hello again!");
    
-   /* after clear: str -> hello again!, len -> 12 */
+   /* after clear: dstr.str -> hello again!, dstr.len -> 12 */
 
    dcpy = dstr_cpy (&dstr);
    dstr_free (&dstr);
    
-   /* copied: str -> hello again!, len -> 12 */
+   /* copied: dcpy.str -> hello again!, dcpy.len -> 12 */
+
+   dstr_toupperd (&dcpy);
+
+   /* upper: dcpy.str -> HELLO AGAIN! */
 
    dstr_clear (&dcpy);
 
