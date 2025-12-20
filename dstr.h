@@ -38,20 +38,24 @@ dstr_t dstr_cpy (const dstr_t *d);
 void dstr_catd (dstr_t *, const char *); /* destructive */
 dstr_t dstr_cat (const dstr_t *, const char *);
 
+void dstr_catfmtvd (dstr_t *d, const char *fmt, va_list ap);
+void dstr_catfmtd (dstr_t *, const char *fmt, ...); /* destructive */
+dstr_t dstr_catfmt (const dstr_t *, const char *fmt, ...);
+
+void dstr_putc (dstr_t *, char);        /* destructive */
+void dstr_putl (dstr_t *, long);        /* destructive */
+void dstr_putd (dstr_t *, double, int); /* destructive */
+
+/* the following functions are internal helper functions.
+   not recommended to use as a user unless
+   you know what you're doing */
+
 void dstr_putl_ext (dstr_t *d, long n, int width, int precision, int flags);
 void dstr_putd_ext (dstr_t *d, double n, int width, int precision, int flags);
 void dstr_catd_ext (dstr_t *d, const char *str, int width, int precision,
                     int flags);
 
-void dstr_catfmtvd (dstr_t *d, const char *fmt, va_list ap);
-void dstr_catfmtd (dstr_t *, const char *fmt, ...); /* destructive */
-dstr_t dstr_catfmt (const dstr_t *, const char *fmt, ...);
-
-void dstr_putc (dstr_t *, char); /* destructive */
-
-void dstr_putl (dstr_t *, long);        /* destructive */
-void dstr_putd (dstr_t *, double, int); /* destructive */
-
+void dstr_putd_internal (dstr_t *d, double n, int precision);
 void dstr_putul_internal (dstr_t *d, unsigned long ul, int base, int uppercase,
                           int width, int precision, int flags);
 
@@ -149,17 +153,29 @@ dstr_catfmtvd (dstr_t *d, const char *fmt, va_list ap)
                while (1)
                   {
                      if (*p == '-')
-                        flags |= DSTR_F_LEFT;
+                        {
+                           flags |= DSTR_F_LEFT;
+                        }
                      else if (*p == '+')
-                        flags |= DSTR_F_PLUS;
+                        {
+                           flags |= DSTR_F_PLUS;
+                        }
                      else if (*p == '0')
-                        flags |= DSTR_F_ZERO;
+                        {
+                           flags |= DSTR_F_ZERO;
+                        }
                      else if (*p == ' ')
-                        flags |= DSTR_F_SPACE;
+                        {
+                           flags |= DSTR_F_SPACE;
+                        }
                      else if (*p == '#')
-                        flags |= DSTR_F_HASH;
+                        {
+                           flags |= DSTR_F_HASH;
+                        }
                      else
-                        break;
+                        {
+                           break;
+                        }
                      p++;
                   }
 
@@ -313,92 +329,6 @@ dstr_putl (dstr_t *d, long n)
 }
 
 void
-dstr_putul_internal (dstr_t *d, unsigned long ul, int base, int uppercase,
-                     int width, int precision, int flags)
-{
-   char buffer[64];
-   int i              = 0, pad, len;
-   const char *digits = uppercase ? "0123456789ABCDEF" : "0123456789abcdef";
-   char pad_char = (flags & DSTR_F_ZERO && !(flags & DSTR_F_LEFT)) ? '0' : ' ';
-
-   if (ul == 0 && precision != 0)
-      buffer[i++] = '0';
-   while (ul > 0)
-      {
-         buffer[i++] = digits[ul % base];
-         ul /= base;
-      }
-
-   while (i < precision && i < 64)
-      buffer[i++] = '0';
-
-   len = i;
-   if ((flags & DSTR_F_HASH) && base == 16)
-      len += 2;
-
-   pad = width - len;
-
-   if (!(flags & DSTR_F_LEFT) && pad_char == ' ')
-      {
-         while (pad-- > 0)
-            dstr_putc (d, ' ');
-      }
-
-   if ((flags & DSTR_F_HASH) && base == 16)
-      {
-         dstr_putc (d, '0');
-         dstr_putc (d, uppercase ? 'X' : 'x');
-      }
-
-   if (!(flags & DSTR_F_LEFT) && pad_char == '0')
-      {
-         while (pad-- > 0)
-            dstr_putc (d, '0');
-      }
-
-   while (i > 0)
-      dstr_putc (d, buffer[--i]);
-
-   if (flags & DSTR_F_LEFT)
-      {
-         while (pad-- > 0)
-            dstr_putc (d, ' ');
-      }
-}
-
-static void
-dstr_putd_internal (dstr_t *d, double n, int precision)
-{
-   long ipart;
-   double fpart;
-   int i;
-   double rounding = 0.5;
-
-   for (i = 0; i < precision; i++)
-      rounding /= 10.0;
-   n += rounding;
-
-   ipart = (long)n;
-   fpart = n - (double)ipart;
-
-   dstr_putl (d, ipart);
-
-   if (precision > 0)
-      {
-         dstr_putc (d, '.');
-         if (fpart < 0)
-            fpart = -fpart;
-
-         for (i = 0; i < precision; i++)
-            {
-               fpart *= 10;
-               dstr_putc (d, ((int)fpart % 10) + '0');
-               fpart -= (int)((int)fpart % 10);
-            }
-      }
-}
-
-void
 dstr_putd (dstr_t *d, double n, int precision)
 {
    dstr_putd_internal (d, n, precision);
@@ -420,9 +350,13 @@ dstr_putl_ext (dstr_t *d, long n, int width, int precision, int flags)
    else
       {
          if (flags & DSTR_F_PLUS)
-            sign = '+';
+            {
+               sign = '+';
+            }
          else if (flags & DSTR_F_SPACE)
-            sign = ' ';
+            {
+               sign = ' ';
+            }
          ul = (unsigned long)n;
       }
 
@@ -448,53 +382,29 @@ dstr_putl_ext (dstr_t *d, long n, int width, int precision, int flags)
          if (!(flags & DSTR_F_LEFT))
             {
                while (pad-- > 0)
-                  dstr_putc (d, ' ');
+                  {
+                     dstr_putc (d, ' ');
+                  }
             }
          dstr_putc (d, sign);
          {
             int i;
             for (i = 0; i < (int)scratch.len; i++)
-               dstr_putc (d, scratch.str[i]);
+               {
+                  dstr_putc (d, scratch.str[i]);
+               }
          }
          if (flags & DSTR_F_LEFT)
             {
                while (pad-- > 0)
-                  dstr_putc (d, ' ');
+                  {
+                     dstr_putc (d, ' ');
+                  }
             }
       }
    else
       {
          dstr_putul_internal (d, ul, 10, 0, width, precision, flags);
-      }
-}
-
-void
-dstr_catd_ext (dstr_t *d, const char *str, int width, int precision, int flags)
-{
-   int s_len = (int)strlen (str);
-   int pad;
-
-   if (precision >= 0 && precision < s_len)
-      s_len = precision;
-
-   pad = width - s_len;
-
-   if (!(flags & DSTR_F_LEFT))
-      {
-         while (pad-- > 0)
-            dstr_putc (d, ' ');
-      }
-
-   {
-      int i;
-      for (i = 0; i < s_len; i++)
-         dstr_putc (d, str[i]);
-   }
-
-   if (flags & DSTR_F_LEFT)
-      {
-         while (pad-- > 0)
-            dstr_putc (d, ' ');
       }
 }
 
@@ -532,16 +442,22 @@ dstr_putd_ext (dstr_t *d, double n, int width, int precision, int flags)
    if (!(flags & DSTR_F_LEFT) && pad_char == ' ')
       {
          while (pad-- > 0)
-            dstr_putc (d, ' ');
+            {
+               dstr_putc (d, ' ');
+            }
       }
 
    if (sign)
-      dstr_putc (d, sign);
+      {
+         dstr_putc (d, sign);
+      }
 
    if (!(flags & DSTR_F_LEFT) && pad_char == '0')
       {
          while (pad-- > 0)
-            dstr_putc (d, '0');
+            {
+               dstr_putc (d, '0');
+            }
       }
 
    for (i = 0; i < (int)scratch.len; i++)
@@ -552,7 +468,151 @@ dstr_putd_ext (dstr_t *d, double n, int width, int precision, int flags)
    if (flags & DSTR_F_LEFT)
       {
          while (pad-- > 0)
-            dstr_putc (d, ' ');
+            {
+               dstr_putc (d, ' ');
+            }
+      }
+}
+
+void
+dstr_catd_ext (dstr_t *d, const char *str, int width, int precision, int flags)
+{
+   int s_len = (int)strlen (str);
+   int pad;
+
+   if (precision >= 0 && precision < s_len)
+      {
+         s_len = precision;
+      }
+
+   pad = width - s_len;
+
+   if (!(flags & DSTR_F_LEFT))
+      {
+         while (pad-- > 0)
+            {
+               dstr_putc (d, ' ');
+            }
+      }
+
+   {
+      int i;
+      for (i = 0; i < s_len; i++)
+         {
+            dstr_putc (d, str[i]);
+         }
+   }
+
+   if (flags & DSTR_F_LEFT)
+      {
+         while (pad-- > 0)
+            {
+               dstr_putc (d, ' ');
+            }
+      }
+}
+
+void
+dstr_putd_internal (dstr_t *d, double n, int precision)
+{
+   long ipart;
+   double fpart;
+   int i;
+   double rounding = 0.5;
+
+   for (i = 0; i < precision; i++)
+      {
+         rounding /= 10.0;
+      }
+   n += rounding;
+
+   ipart = (long)n;
+   fpart = n - (double)ipart;
+
+   dstr_putl (d, ipart);
+
+   if (precision > 0)
+      {
+         dstr_putc (d, '.');
+         if (fpart < 0)
+            {
+               fpart = -fpart;
+            }
+
+         for (i = 0; i < precision; i++)
+            {
+               fpart *= 10;
+               dstr_putc (d, ((int)fpart % 10) + '0');
+               fpart -= (int)((int)fpart % 10);
+            }
+      }
+}
+
+void
+dstr_putul_internal (dstr_t *d, unsigned long ul, int base, int uppercase,
+                     int width, int precision, int flags)
+{
+   char buffer[64];
+   int i              = 0, pad, len;
+   const char *digits = uppercase ? "0123456789ABCDEF" : "0123456789abcdef";
+   char pad_char = (flags & DSTR_F_ZERO && !(flags & DSTR_F_LEFT)) ? '0' : ' ';
+
+   if (ul == 0 && precision != 0)
+      {
+         buffer[i++] = '0';
+      }
+   while (ul > 0)
+      {
+         buffer[i++] = digits[ul % base];
+         ul /= base;
+      }
+
+   while (i < precision && i < 64)
+      {
+         buffer[i++] = '0';
+      }
+
+   len = i;
+   if ((flags & DSTR_F_HASH) && base == 16)
+      {
+         len += 2;
+      }
+
+   pad = width - len;
+
+   if (!(flags & DSTR_F_LEFT) && pad_char == ' ')
+      {
+         while (pad-- > 0)
+            {
+               dstr_putc (d, ' ');
+            }
+      }
+
+   if ((flags & DSTR_F_HASH) && base == 16)
+      {
+         dstr_putc (d, '0');
+         dstr_putc (d, uppercase ? 'X' : 'x');
+      }
+
+   if (!(flags & DSTR_F_LEFT) && pad_char == '0')
+      {
+         while (pad-- > 0)
+            {
+               dstr_putc (d, '0');
+            }
+      }
+
+   while (i > 0)
+      {
+         dstr_putc (d, buffer[--i]);
+      }
+
+   if (flags & DSTR_F_LEFT)
+      {
+         while (pad-- > 0)
+            {
+               dstr_putc (d, ' ');
+            }
       }
 }
 
