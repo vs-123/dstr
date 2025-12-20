@@ -4,10 +4,10 @@
 #include <string.h>
 
 dstr_t
-dstr_new (size_t init_capacity)
+dstr_new (void)
 {
    dstr_t dstr = { 0 };
-   dstr.str = malloc (init_capacity * sizeof (char));
+   dstr.str = malloc (0);
    dstr.len = 0;
 
    return dstr;
@@ -21,11 +21,36 @@ dstr_free (dstr_t *d)
 }
 
 void
+dstr_clear (dstr_t *d)
+{
+   dstr_free (d);
+   *d = dstr_new ();
+}
+
+dstr_t
+dstr_cpy (const dstr_t *d)
+{
+   dstr_t dcpy = { 0 };
+   dcpy.str = malloc (sizeof (char) * d->len);
+   strcpy (dcpy.str, d->str);
+   dcpy.len = d->len;
+   return dcpy;
+}
+
+void
 dstr_catd (dstr_t *d, const char *str)
 {
-   size_t s_len = strlen(str);
+   size_t s_len = strlen (str);
    memcpy (d->str + d->len, str, s_len);
    d->len += s_len;
+}
+
+dstr_t
+dstr_cat (const dstr_t *d, const char *str)
+{
+   dstr_t dcpy = dstr_cpy (d);
+   dstr_catd (&dcpy, str);
+   return dcpy;
 }
 
 void
