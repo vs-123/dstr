@@ -19,6 +19,7 @@
 #ifndef __DSTR_H
 #define __DSTR_H
 
+#include <stdarg.h>
 #include <stddef.h>
 
 typedef struct
@@ -36,6 +37,7 @@ dstr_t dstr_cpy (const dstr_t *d);
 void dstr_catd (dstr_t *, const char *); /* destructive */
 dstr_t dstr_cat (const dstr_t *, const char *);
 
+void dstr_catfmtvd (dstr_t *d, const char *fmt, va_list ap);
 void dstr_catfmtd (dstr_t *, const char *fmt, ...); /* destructive */
 dstr_t dstr_catfmt (const dstr_t *, const char *fmt, ...);
 
@@ -104,11 +106,9 @@ dstr_cat (const dstr_t *d, const char *str)
 }
 
 void
-dstr_catfmtd (dstr_t *d, const char *fmt, ...)
+dstr_catfmtvd (dstr_t *d, const char *fmt, va_list ap)
 {
-   va_list ap;
    const char *p = fmt;
-   va_start (ap, fmt);
 
    while (*p)
       {
@@ -156,7 +156,29 @@ dstr_catfmtd (dstr_t *d, const char *fmt, ...)
             }
          p++;
       }
+}
+
+void
+dstr_catfmtd (dstr_t *d, const char *fmt, ...)
+{
+   va_list ap;
+
+   va_start (ap, fmt);
+   dstr_catfmtvd (d, fmt, ap);
    va_end (ap);
+}
+
+dstr_t
+dstr_catfmt (const dstr_t *d, const char *fmt, ...)
+{
+   va_list ap;
+   dstr_t dcpy = dstr_cpy (d);
+
+   va_start (ap, fmt);
+   dstr_catfmtvd (&dcpy, fmt, ap);
+   va_end (ap);
+
+   return dcpy;
 }
 
 void
