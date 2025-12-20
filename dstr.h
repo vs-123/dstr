@@ -103,7 +103,7 @@ dstr_putc (dstr_t *d, char c)
    d->len++;
 }
 
-#endif // DSTR_IMPL
+#endif /* DSTR_IMPL */
 
 /*
 ~=~=~=~=~=~=~=~=~=~=~=~=~=~

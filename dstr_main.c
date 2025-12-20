@@ -6,7 +6,9 @@
 int
 main (void)
 {
-   dstr_t dstr = dstr_new ();
+   dstr_t dstr, dcpy;
+
+   dstr = dstr_new ();
    
    dstr_catd (&dstr, "hello,");
    dstr_putc (&dstr, ' ');
@@ -19,7 +21,7 @@ main (void)
    dstr_catd (&dstr, "hello again!");
    printf ("after clear: str -> %s, len -> %zu\n", dstr.str, dstr.len);
 
-   dstr_t dcpy = dstr_cpy (&dstr);
+   dcpy = dstr_cpy (&dstr);
    dstr_free (&dstr);
 
    printf("copied: str -> %s, len -> %zu\n", dcpy.str, dcpy.len);

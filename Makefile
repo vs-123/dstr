@@ -1,5 +1,5 @@
-WOPT=-Wall -Wextra -Wpedantic
-OPT=-std=c99 $(WOPT)
+WOPT=-Wall -Wextra -Wpedantic -pedantic-errors -pedantic -Werror
+OPT=-std=c89 $(WOPT)
 
 build: $(SRC)
 	@ mkdir -p build/
