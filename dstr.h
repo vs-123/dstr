@@ -26,6 +26,7 @@ typedef struct
 {
    char *str;
    size_t len;
+   size_t cap;
 } dstr_t;
 
 dstr_t dstr_new (void);
@@ -37,13 +38,22 @@ dstr_t dstr_cpy (const dstr_t *d);
 void dstr_catd (dstr_t *, const char *); /* destructive */
 dstr_t dstr_cat (const dstr_t *, const char *);
 
+void dstr_putl_ext (dstr_t *d, long n, int width, int precision, int flags);
+void dstr_putd_ext (dstr_t *d, double n, int width, int precision, int flags);
+void dstr_catd_ext (dstr_t *d, const char *str, int width, int precision,
+                    int flags);
+
 void dstr_catfmtvd (dstr_t *d, const char *fmt, va_list ap);
 void dstr_catfmtd (dstr_t *, const char *fmt, ...); /* destructive */
 dstr_t dstr_catfmt (const dstr_t *, const char *fmt, ...);
 
-void dstr_putc (dstr_t *, char);        /* destructive */
+void dstr_putc (dstr_t *, char); /* destructive */
+
 void dstr_putl (dstr_t *, long);        /* destructive */
 void dstr_putd (dstr_t *, double, int); /* destructive */
+
+void dstr_putul_internal (dstr_t *d, unsigned long ul, int base, int uppercase,
+                          int width, int precision, int flags);
 
 #endif /* __DSTR_H */
 
@@ -59,8 +69,10 @@ dstr_t
 dstr_new (void)
 {
    dstr_t dstr = { 0 };
-   dstr.str = malloc (0);
-   dstr.len = 0;
+   dstr.len    = 0;
+   dstr.cap    = 16;
+   dstr.str    = malloc (dstr.cap * sizeof (char));
+   dstr.str[0] = '\0';
 
    return dstr;
 }
@@ -82,19 +94,26 @@ dstr_clear (dstr_t *d)
 dstr_t
 dstr_cpy (const dstr_t *d)
 {
-   dstr_t dcpy = { 0 };
-   dcpy.str = malloc (sizeof (char) * d->len);
-   strcpy (dcpy.str, d->str);
+   dstr_t dcpy;
+
    dcpy.len = d->len;
+   dcpy.cap = d->len + 1;
+   dcpy.str = malloc (dcpy.cap);
+
+   if (d->len > 0)
+      {
+         memcpy (dcpy.str, d->str, d->len);
+      }
+
+   dcpy.str[dcpy.len] = '\0';
+
    return dcpy;
 }
 
 void
 dstr_catd (dstr_t *d, const char *str)
 {
-   size_t s_len = strlen (str);
-   memcpy (d->str + d->len, str, s_len);
-   d->len += s_len;
+   dstr_catd_ext (d, str, 0, -1, 0);
 }
 
 dstr_t
@@ -105,44 +124,138 @@ dstr_cat (const dstr_t *d, const char *str)
    return dcpy;
 }
 
+#define DSTR_F_LEFT (1 << 0)  /* '-' left justify */
+#define DSTR_F_PLUS (1 << 1)  /* '+' forced sign */
+#define DSTR_F_ZERO (1 << 2)  /* '0' zero padding */
+#define DSTR_F_SPACE (1 << 3) /* ' ' positive sign */
+#define DSTR_F_HASH (1 << 4)  /* '#' alternate form */
+
 void
 dstr_catfmtvd (dstr_t *d, const char *fmt, va_list ap)
 {
    const char *p = fmt;
 
+   /* %[flags][width][.precision][length]type */
    while (*p)
       {
-         if (*p == '%')
+         if (*p == '%' && *(p + 1) != '\0')
             {
-               if (*(p + 1) == '\0')
-                  break;
+               int flags     = 0;
+               int width     = 0;
+               int precision = -1;
                p++;
+
+               /* flags */
+               while (1)
+                  {
+                     if (*p == '-')
+                        flags |= DSTR_F_LEFT;
+                     else if (*p == '+')
+                        flags |= DSTR_F_PLUS;
+                     else if (*p == '0')
+                        flags |= DSTR_F_ZERO;
+                     else if (*p == ' ')
+                        flags |= DSTR_F_SPACE;
+                     else if (*p == '#')
+                        flags |= DSTR_F_HASH;
+                     else
+                        break;
+                     p++;
+                  }
+
+               /* width */
+               if (*p == '*')
+                  {
+                     width = va_arg (ap, int);
+                     p++;
+                  }
+               else
+                  {
+                     while (*p >= '0' && *p <= '9')
+                        {
+                           width = width * 10 + (*p - '0');
+                           p++;
+                        }
+                  }
+
+               /* precision */
+               if (*p == '.')
+                  {
+                     p++;
+                     if (*p == '*')
+                        {
+                           precision = va_arg (ap, int);
+                           p++;
+                        }
+                     else
+                        {
+                           precision = 0;
+                           while (*p >= '0' && *p <= '9')
+                              {
+                                 precision = precision * 10 + (*p - '0');
+                                 p++;
+                              }
+                        }
+                  }
+
                switch (*p)
                   {
                   case 's':
                      {
                         char *s = va_arg (ap, char *);
-                        dstr_catd (d, s ? s : "(NULL)");
+                        dstr_catd_ext (d, s ? s : "(NULL)", width, precision,
+                                       flags);
                         break;
                      }
                   case 'd':
+                  case 'i':
                      {
-                        dstr_putl (d, (long)va_arg (ap, int));
+                        dstr_putl_ext (d, (long)va_arg (ap, int), width,
+                                       precision, flags);
                         break;
                      }
                   case 'l':
                      {
-                        if (*(p + 1) == 'd')
+                        if (*(p + 1) == 'd' || *(p + 1) == 'i')
                            {
                               p++;
-                              dstr_putl (d, va_arg (ap, long));
+                              dstr_putl_ext (d, va_arg (ap, long), width,
+                                             precision, flags);
                            }
                         break;
                      }
                   case 'f':
                      {
-                        dstr_putd (d, va_arg (ap, double), 6);
+                        dstr_putd_ext (d, va_arg (ap, double), width,
+                                       (precision > -1) ? precision : 6,
+                                       flags);
+                        break;
                      }
+                  case 'u':
+                     dstr_putul_internal (d, va_arg (ap, unsigned int), 10, 0,
+                                          width, precision, flags);
+                     break;
+                  case 'x':
+                  case 'X':
+                     dstr_putul_internal (d, va_arg (ap, unsigned int), 16,
+                                          (*p == 'X'), width, precision,
+                                          flags);
+                     break;
+                  case 'p':
+                     {
+                        void *ptr = va_arg (ap, void *);
+                        if (ptr == NULL)
+                           {
+                              dstr_catd (d, "(nil)");
+                           }
+                        else
+                           {
+                              dstr_putul_internal (d, (unsigned long)ptr, 16,
+                                                   0, width, precision,
+                                                   flags | DSTR_F_HASH);
+                           }
+                     }
+                     break;
                   case '%':
                      {
                         dstr_putc (d, '%');
@@ -184,51 +297,89 @@ dstr_catfmt (const dstr_t *d, const char *fmt, ...)
 void
 dstr_putc (dstr_t *d, char c)
 {
-   memcpy (d->str + d->len, &c, 1);
-   d->len++;
+   if (d->len + 1 >= d->cap)
+      {
+         d->cap *= 2;
+         d->str = realloc (d->str, d->cap);
+      }
+   d->str[d->len++] = c;
+   d->str[d->len]   = '\0';
 }
 
 void
 dstr_putl (dstr_t *d, long n)
 {
-   char buffer[32];
-   unsigned long ul;
-   int i = 0;
-
-   if (n == 0)
-      {
-         dstr_putc (d, '0');
-         return;
-      }
-
-   if (n < 0)
-      {
-         dstr_putc (d, '-');
-         ul = (unsigned long)-(n + 1) + 1;
-      }
-   else
-      {
-         ul = (unsigned long)n;
-      }
-
-   while (ul > 0)
-      {
-         buffer[i++] = (ul % 10) + '0';
-         ul /= 10;
-      }
-
-   while (i > 0)
-      {
-         dstr_putc (d, buffer[--i]);
-      }
+   dstr_putl_ext (d, n, 0, -1, 0);
 }
 
 void
-dstr_putd (dstr_t *d, double n, int precision)
+dstr_putul_internal (dstr_t *d, unsigned long ul, int base, int uppercase,
+                     int width, int precision, int flags)
 {
-   long ipart = (long)n;
-   double fpart = n - (double)ipart;
+   char buffer[64];
+   int i              = 0, pad, len;
+   const char *digits = uppercase ? "0123456789ABCDEF" : "0123456789abcdef";
+   char pad_char = (flags & DSTR_F_ZERO && !(flags & DSTR_F_LEFT)) ? '0' : ' ';
+
+   if (ul == 0 && precision != 0)
+      buffer[i++] = '0';
+   while (ul > 0)
+      {
+         buffer[i++] = digits[ul % base];
+         ul /= base;
+      }
+
+   while (i < precision && i < 64)
+      buffer[i++] = '0';
+
+   len = i;
+   if ((flags & DSTR_F_HASH) && base == 16)
+      len += 2;
+
+   pad = width - len;
+
+   if (!(flags & DSTR_F_LEFT) && pad_char == ' ')
+      {
+         while (pad-- > 0)
+            dstr_putc (d, ' ');
+      }
+
+   if ((flags & DSTR_F_HASH) && base == 16)
+      {
+         dstr_putc (d, '0');
+         dstr_putc (d, uppercase ? 'X' : 'x');
+      }
+
+   if (!(flags & DSTR_F_LEFT) && pad_char == '0')
+      {
+         while (pad-- > 0)
+            dstr_putc (d, '0');
+      }
+
+   while (i > 0)
+      dstr_putc (d, buffer[--i]);
+
+   if (flags & DSTR_F_LEFT)
+      {
+         while (pad-- > 0)
+            dstr_putc (d, ' ');
+      }
+}
+
+static void
+dstr_putd_internal (dstr_t *d, double n, int precision)
+{
+   long ipart;
+   double fpart;
    int i;
+   double rounding = 0.5;
+
+   for (i = 0; i < precision; i++)
+      rounding /= 10.0;
+   n += rounding;
+
+   ipart = (long)n;
+   fpart = n - (double)ipart;
 
    dstr_putl (d, ipart);
 
@@ -242,7 +393,166 @@ dstr_putd (dstr_t *d, double n, int precision)
             {
                fpart *= 10;
                dstr_putc (d, ((int)fpart % 10) + '0');
+               fpart -= (int)((int)fpart % 10);
             }
+      }
+}
+
+void
+dstr_putd (dstr_t *d, double n, int precision)
+{
+   dstr_putd_internal (d, n, precision);
+}
+
+void
+dstr_putl_ext (dstr_t *d, long n, int width, int precision, int flags)
+{
+   unsigned long ul;
+   char sign     = 0;
+   char pad_char = (flags & DSTR_F_ZERO && !(flags & DSTR_F_LEFT)) ? '0' : ' ';
+   int pad;
+
+   if (n < 0)
+      {
+         sign = '-';
+         ul   = (unsigned long)-(n + 1) + 1;
+      }
+   else
+      {
+         if (flags & DSTR_F_PLUS)
+            sign = '+';
+         else if (flags & DSTR_F_SPACE)
+            sign = ' ';
+         ul = (unsigned long)n;
+      }
+
+   pad = width - (sign ? 1 : 0);
+
+   if (sign && pad_char == '0')
+      {
+         dstr_putc (d, sign);
+         dstr_putul_internal (d, ul, 10, 0, pad, precision, flags);
+      }
+
+   else if (sign)
+      {
+         char buf_temp[64];
+         dstr_t scratch;
+         scratch.str = buf_temp;
+         scratch.len = 0;
+         scratch.cap = 64;
+
+         dstr_putul_internal (&scratch, ul, 10, 0, 0, precision, flags);
+
+         pad = width - (int)scratch.len - 1;
+         if (!(flags & DSTR_F_LEFT))
+            {
+               while (pad-- > 0)
+                  dstr_putc (d, ' ');
+            }
+         dstr_putc (d, sign);
+         {
+            int i;
+            for (i = 0; i < (int)scratch.len; i++)
+               dstr_putc (d, scratch.str[i]);
+         }
+         if (flags & DSTR_F_LEFT)
+            {
+               while (pad-- > 0)
+                  dstr_putc (d, ' ');
+            }
+      }
+   else
+      {
+         dstr_putul_internal (d, ul, 10, 0, width, precision, flags);
+      }
+}
+
+void
+dstr_catd_ext (dstr_t *d, const char *str, int width, int precision, int flags)
+{
+   int s_len = (int)strlen (str);
+   int pad;
+
+   if (precision >= 0 && precision < s_len)
+      s_len = precision;
+
+   pad = width - s_len;
+
+   if (!(flags & DSTR_F_LEFT))
+      {
+         while (pad-- > 0)
+            dstr_putc (d, ' ');
+      }
+
+   {
+      int i;
+      for (i = 0; i < s_len; i++)
+         dstr_putc (d, str[i]);
+   }
+
+   if (flags & DSTR_F_LEFT)
+      {
+         while (pad-- > 0)
+            dstr_putc (d, ' ');
+      }
+}
+
+void
+dstr_putd_ext (dstr_t *d, double n, int width, int precision, int flags)
+{
+   char buf[128];
+   dstr_t scratch;
+   int pad, i;
+   char pad_char = (flags & DSTR_F_ZERO && !(flags & DSTR_F_LEFT)) ? '0' : ' ';
+   char sign     = 0;
+
+   scratch.str = buf;
+   scratch.len = 0;
+   scratch.cap = 128;
+
+   if (n < 0)
+      {
+         sign = '-';
+         n    = -n;
+      }
+   else if (flags & DSTR_F_PLUS)
+      {
+         sign = '+';
+      }
+   else if (flags & DSTR_F_SPACE)
+      {
+         sign = ' ';
+      }
+
+   dstr_putd_internal (&scratch, n, precision);
+
+   pad = width - (int)scratch.len - (sign ? 1 : 0);
+
+   if (!(flags & DSTR_F_LEFT) && pad_char == ' ')
+      {
+         while (pad-- > 0)
+            dstr_putc (d, ' ');
+      }
+
+   if (sign)
+      dstr_putc (d, sign);
+
+   if (!(flags & DSTR_F_LEFT) && pad_char == '0')
+      {
+         while (pad-- > 0)
+            dstr_putc (d, '0');
+      }
+
+   for (i = 0; i < (int)scratch.len; i++)
+      {
+         dstr_putc (d, scratch.str[i]);
+      }
+
+   if (flags & DSTR_F_LEFT)
+      {
+         while (pad-- > 0)
+            dstr_putc (d, ' ');
       }
 }
 

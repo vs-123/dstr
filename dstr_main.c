@@ -7,9 +7,10 @@ int
 main (void)
 {
    dstr_t dstr, dcpy;
-   int x;
-   x = 5;
-
+   double pi = 3.1415926535;
+   long debt = -2147483647;
+   char *name = "vs-123";
+   
    dstr = dstr_new ();
    
    dstr_catd (&dstr, "hello,");
@@ -30,7 +31,8 @@ main (void)
 
    dstr_clear (&dcpy);
 
-   dstr_catfmtd (&dcpy, "the number is %d", x);
+   dstr_catfmtd (&dcpy, "User: %-15s | Balance: %+.10ld | Constant: %010.*f | %% complete", 
+    name, debt, 4, pi);
 
    printf ("catfmtd: str -> %s, len -> %zu\n", dcpy.str, dcpy.len);
    
