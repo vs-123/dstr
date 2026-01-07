@@ -692,7 +692,7 @@ dstr_putul_internal (dstr_t *d, unsigned long ul, int base, int uppercase,
             }
       }
 }
-
+#undef DSTR_IMPL
 #endif /* DSTR_IMPL */
 
 /*
