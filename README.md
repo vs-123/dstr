@@ -2,7 +2,7 @@
 
 dstr is a dead-simple, C89-compatible, single-header dynamic string library. dstr stands for `dynamic string`.
 
-# FEATURES 
+## FEATURES 
 - Single-header library, zero installation required. Just clone and `#include`, it's that easy.
 
 - Dead-simple API. 
@@ -16,7 +16,7 @@ dstr is a dead-simple, C89-compatible, single-header dynamic string library. dst
 - Even a C compiler from 1990 would happily compile this without a single warning.
 
 
-# HOW TO USE 
+## HOW TO USE 
 - Clone this repository into your project.
 
 ```
@@ -35,7 +35,7 @@ dstr is a dead-simple, C89-compatible, single-header dynamic string library. dst
 
 - Finally, use `#include "dstr.h"` wherever you'd like.
 
-# EXAMPLE 
+## EXAMPLE 
 ```c
 #define DSTR_IMPL
 #include "dstr.h"
@@ -76,7 +76,7 @@ dstr_catfmtd (&dcpy, "User: %-15s | Balance: %+.10ld | Constant: %010.*f | %% co
 dstr_free(&dcpy);
 ```
 
-# LICENSE 
+## LICENSE 
 
 This project is licensed under the GNU Affero General Public License Version 3.0 or later.
 
