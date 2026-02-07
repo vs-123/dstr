@@ -58,7 +58,7 @@ dstr_catd (&dstr, "hello again!");
 
 /* after clear: dstr.str -> hello again!, dstr.len -> 12 */
 
-dcpy ` dstr_cpy (&dstr);
+dcpy = dstr_cpy (&dstr);
 dstr_free (&dstr);
 
 /* copied: dcpy.str -> hello again!, dcpy.len -> 12 */
