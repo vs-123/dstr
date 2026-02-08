@@ -11,7 +11,7 @@ dstr is a dead-simple, C89-compatible, single-header dynamic string library. dst
    
 - Minimal dependencies, relies only on core C89 headers i.e. `<stddef.h>`, `<stdlib.h>` & `<string.h>`
 
-- Supports printf-style formatters, like `%s`, `%010.*f`, `%i`, etc., written manually from scratch.
+- Supports printf-style formatters, like `%s`, `%010.*f`, `%i`, etc., written manually from scratch. (see `EXAMPLE` below)
        
 - Even a C compiler from 1990 would happily compile this without a single warning.
 
